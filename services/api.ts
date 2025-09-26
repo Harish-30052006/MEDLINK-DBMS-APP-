@@ -1,6 +1,6 @@
 import { UserProfile, MedicalRecord, Medication, Allergy, EmergencyContact, Appointment, Vital } from '../types';
 
-const API_BASE = 'http://localhost:5000/api'; // Change to deployed URL later
+const API_BASE = 'https://medlink-dbms-app.onrender.com/api'; // Deployed URL
 
 interface ApiResponse<T> {
   data?: T;

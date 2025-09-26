@@ -1,0 +1,7 @@
+{
+  "name": "MedLink Health Hub",
+  "description": "A comprehensive personal health management application to store, track, and manage your medical information, appointments, vitals, and emergency contacts, ensuring you have critical health data at your fingertips when you need it most.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}

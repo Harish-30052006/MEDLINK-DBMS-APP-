@@ -8,7 +8,7 @@ interface LoginProps {
 }
 
 const Login: React.FC<LoginProps> = ({ onSwitchToSignUp, onBack }) => {
-  const [email, setEmail] = useState('alex.doe@example.com');
+  const [email, setEmail] = useState('testpatient@medlink.com');
   const [password, setPassword] = useState('password123');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
-import { storageService } from '../services/storage';
+import { apiService } from '../services/api';
 import { UserProfile } from '../types';
 import Modal from './Modal';
 import Profile from './Profile';
@@ -42,13 +42,24 @@ const DoctorDashboard: React.FC = () => {
     const { user, logout } = useAuth();
     const { loadPatientData, unloadPatientData } = useData();
     const [patients, setPatients] = useState<UserProfile[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
 
     useEffect(() => {
-        const allPatients = storageService.getAllPatients();
-        setPatients(allPatients);
-        
+        const fetchPatients = async () => {
+            try {
+                const allPatients = await apiService.getPatients();
+                setPatients(allPatients);
+            } catch (err: any) {
+                setError(err.message || 'Failed to load patients');
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchPatients();
+
         // Cleanup when component unmounts
         return () => {
             unloadPatientData();
@@ -103,24 +114,32 @@ const DoctorDashboard: React.FC = () => {
                 
                 <div className="bg-white p-6 rounded-xl shadow-lg">
                     <h2 className="text-2xl font-semibold text-gray-700 mb-4">Patient Directory</h2>
-                    <input type="text" placeholder="Search for a patient by name or email..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full p-3 border border-gray-300 rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-primary"/>
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left">
-                            <thead>
-                                <tr className="bg-gray-50 border-b"><th className="p-4 font-semibold text-gray-600">Name</th><th className="p-4 font-semibold text-gray-600">Email</th><th className="p-4 font-semibold text-gray-600">Phone</th><th className="p-4 font-semibold text-gray-600">Actions</th></tr>
-                            </thead>
-                            <tbody>
-                                {filteredPatients.map(patient => (
-                                    <tr key={patient.id} className="border-b hover:bg-gray-50">
-                                        <td className="p-4">{patient.name}</td>
-                                        <td className="p-4">{patient.email}</td>
-                                        <td className="p-4">{patient.phone || 'N/A'}</td>
-                                        <td className="p-4"><button onClick={() => handleViewRecords(patient.id)} className="text-primary hover:underline">View / Edit Records</button></td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
+                    {loading ? (
+                        <div className="text-center p-8">Loading patients...</div>
+                    ) : error ? (
+                        <div className="text-center p-8 text-red-500">{error}</div>
+                    ) : (
+                        <>
+                            <input type="text" placeholder="Search for a patient by name or email..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full p-3 border border-gray-300 rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-primary"/>
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-left">
+                                    <thead>
+                                        <tr className="bg-gray-50 border-b"><th className="p-4 font-semibold text-gray-600">Name</th><th className="p-4 font-semibold text-gray-600">Email</th><th className="p-4 font-semibold text-gray-600">Phone</th><th className="p-4 font-semibold text-gray-600">Actions</th></tr>
+                                    </thead>
+                                    <tbody>
+                                        {filteredPatients.map(patient => (
+                                            <tr key={patient.id} className="border-b hover:bg-gray-50">
+                                                <td className="p-4">{patient.name}</td>
+                                                <td className="p-4">{patient.email}</td>
+                                                <td className="p-4">{patient.phone || 'N/A'}</td>
+                                                <td className="p-4"><button onClick={() => handleViewRecords(patient.id)} className="text-primary hover:underline">View / Edit Records</button></td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </>
+                    )}
                 </div>
             </main>
             

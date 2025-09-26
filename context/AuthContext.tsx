@@ -37,12 +37,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     try {
       const response = await apiService.signup({
         name,
-        dob: '',
-        gender: 'Other',
-        phone: '',
+        dob: '1990-01-01',
+        gender: 'Male',
+        phone: '+1-555-000-0000',
         email,
-        address: '',
-        bloodGroup: '',
+        address: '123 Test Street, Test City, 12345',
+        bloodGroup: 'O+',
         role: 'Patient',
         password,
       });

@@ -60,9 +60,12 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
     setIsLoading(true);
     try {
-      const patientData = await apiService.getPatientData(userId);
+      const [profile, patientData] = await Promise.all([
+        apiService.getUser(userId),
+        apiService.getPatientData(userId)
+      ]);
       setData({
-        userProfile: null, // Profile is separate
+        userProfile: profile,
         ...patientData,
       });
     } catch (error) {
@@ -115,30 +118,174 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-  const handleUpdateItem = <T extends { id: string }>(key: PatientDataListWithIdKey, item: T) => {
+  const handleUpdateAppointment = async (item: Appointment) => {
     if (activeUserId) {
-      storageService.updateItem<T>(activeUserId, key, item);
-      setData(prev => ({...prev, [key]: (prev[key] as T[]).map(i => i.id === item.id ? item : i)}));
+      try {
+        await apiService.updateAppointment(activeUserId, item.id, item);
+        setData(prev => ({...prev, appointments: prev.appointments.map(a => a.id === item.id ? item : a)}));
+      } catch (error) {
+        console.error('Failed to update appointment:', error);
+      }
     }
   };
 
-  const handleDeleteItem = (key: PatientDataListWithIdKey, id: string) => {
+  const handleDeleteAppointment = async (id: string) => {
     if (activeUserId) {
-      storageService.deleteItem(activeUserId, key, id);
-      setData(prev => ({...prev, [key]: (prev[key] as {id:string}[]).filter(i => i.id !== id)}));
+      try {
+        await apiService.deleteAppointment(activeUserId, id);
+        setData(prev => ({...prev, appointments: prev.appointments.filter(a => a.id !== id)}));
+      } catch (error) {
+        console.error('Failed to delete appointment:', error);
+      }
     }
   };
-  
-  const handleAddVital = (item: Omit<Vital, 'date'>) => {
-      if (activeUserId) {
-          const newVital: Vital = { ...item, date: new Date().toISOString().split('T')[0] };
-          setData(prev => {
-              const updatedVitals = [...prev.vitals, newVital].sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-              storageService.updateVitals(activeUserId, updatedVitals);
-              return { ...prev, vitals: updatedVitals };
-          });
+
+  const handleAddMedicalRecord = async (item: Omit<MedicalRecord, 'id'>) => {
+    if (activeUserId) {
+      try {
+        const newItem = await apiService.addMedicalRecord(activeUserId, item);
+        setData(prev => ({...prev, medicalHistory: [...prev.medicalHistory, newItem] }));
+      } catch (error) {
+        console.error('Failed to add medical record:', error);
       }
-  }
+    }
+  };
+
+  const handleUpdateMedicalRecord = async (item: MedicalRecord) => {
+    if (activeUserId) {
+      try {
+        await apiService.updateMedicalRecord(activeUserId, item.id, item);
+        setData(prev => ({...prev, medicalHistory: prev.medicalHistory.map(r => r.id === item.id ? item : r)}));
+      } catch (error) {
+        console.error('Failed to update medical record:', error);
+      }
+    }
+  };
+
+  const handleDeleteMedicalRecord = async (id: string) => {
+    if (activeUserId) {
+      try {
+        await apiService.deleteMedicalRecord(activeUserId, id);
+        setData(prev => ({...prev, medicalHistory: prev.medicalHistory.filter(r => r.id !== id)}));
+      } catch (error) {
+        console.error('Failed to delete medical record:', error);
+      }
+    }
+  };
+
+  const handleAddMedication = async (item: Omit<Medication, 'id'>) => {
+    if (activeUserId) {
+      try {
+        const newItem = await apiService.addMedication(activeUserId, item);
+        setData(prev => ({...prev, medications: [...prev.medications, newItem] }));
+      } catch (error) {
+        console.error('Failed to add medication:', error);
+      }
+    }
+  };
+
+  const handleUpdateMedication = async (item: Medication) => {
+    if (activeUserId) {
+      try {
+        await apiService.updateMedication(activeUserId, item.id, item);
+        setData(prev => ({...prev, medications: prev.medications.map(m => m.id === item.id ? item : m)}));
+      } catch (error) {
+        console.error('Failed to update medication:', error);
+      }
+    }
+  };
+
+  const handleDeleteMedication = async (id: string) => {
+    if (activeUserId) {
+      try {
+        await apiService.deleteMedication(activeUserId, id);
+        setData(prev => ({...prev, medications: prev.medications.filter(m => m.id !== id)}));
+      } catch (error) {
+        console.error('Failed to delete medication:', error);
+      }
+    }
+  };
+
+  const handleAddAllergy = async (item: Omit<Allergy, 'id'>) => {
+    if (activeUserId) {
+      try {
+        const newItem = await apiService.addAllergy(activeUserId, item);
+        setData(prev => ({...prev, allergies: [...prev.allergies, newItem] }));
+      } catch (error) {
+        console.error('Failed to add allergy:', error);
+      }
+    }
+  };
+
+  const handleUpdateAllergy = async (item: Allergy) => {
+    if (activeUserId) {
+      try {
+        await apiService.updateAllergy(activeUserId, item.id, item);
+        setData(prev => ({...prev, allergies: prev.allergies.map(a => a.id === item.id ? item : a)}));
+      } catch (error) {
+        console.error('Failed to update allergy:', error);
+      }
+    }
+  };
+
+  const handleDeleteAllergy = async (id: string) => {
+    if (activeUserId) {
+      try {
+        await apiService.deleteAllergy(activeUserId, id);
+        setData(prev => ({...prev, allergies: prev.allergies.filter(a => a.id !== id)}));
+      } catch (error) {
+        console.error('Failed to delete allergy:', error);
+      }
+    }
+  };
+
+  const handleAddEmergencyContact = async (item: Omit<EmergencyContact, 'id'>) => {
+    if (activeUserId) {
+      try {
+        const newItem = await apiService.addEmergencyContact(activeUserId, item);
+        setData(prev => ({...prev, emergencyContacts: [...prev.emergencyContacts, newItem] }));
+      } catch (error) {
+        console.error('Failed to add emergency contact:', error);
+      }
+    }
+  };
+
+  const handleUpdateEmergencyContact = async (item: EmergencyContact) => {
+    if (activeUserId) {
+      try {
+        await apiService.updateEmergencyContact(activeUserId, item.id, item);
+        setData(prev => ({...prev, emergencyContacts: prev.emergencyContacts.map(e => e.id === item.id ? item : e)}));
+      } catch (error) {
+        console.error('Failed to update emergency contact:', error);
+      }
+    }
+  };
+
+  const handleDeleteEmergencyContact = async (id: string) => {
+    if (activeUserId) {
+      try {
+        await apiService.deleteEmergencyContact(activeUserId, id);
+        setData(prev => ({...prev, emergencyContacts: prev.emergencyContacts.filter(e => e.id !== id)}));
+      } catch (error) {
+        console.error('Failed to delete emergency contact:', error);
+      }
+    }
+  };
+
+  const handleAddVital = async (item: Omit<Vital, 'date'>) => {
+    if (activeUserId) {
+      try {
+        const newVital: Vital = { ...item, date: new Date().toISOString().split('T')[0] };
+        await apiService.addVital(activeUserId, newVital);
+        setData(prev => {
+          const updatedVitals = [...prev.vitals, newVital].sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+          return { ...prev, vitals: updatedVitals };
+        });
+      } catch (error) {
+        console.error('Failed to add vital:', error);
+      }
+    }
+  };
 
 
   const value: DataContextType = {
@@ -149,39 +296,20 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     unloadPatientData,
     updateProfile: handleUpdateProfile,
     addAppointment: handleAddAppointment,
-    updateAppointment: async (item) => {
-      if (activeUserId) {
-        try {
-          await apiService.updateAppointment(activeUserId, item.id, item);
-          setData(prev => ({...prev, appointments: prev.appointments.map(a => a.id === item.id ? item : a)}));
-        } catch (error) {
-          console.error('Failed to update appointment:', error);
-        }
-      }
-    },
-    deleteAppointment: async (id) => {
-      if (activeUserId) {
-        try {
-          await apiService.deleteAppointment(activeUserId, id);
-          setData(prev => ({...prev, appointments: prev.appointments.filter(a => a.id !== id)}));
-        } catch (error) {
-          console.error('Failed to delete appointment:', error);
-        }
-      }
-    },
-    // Placeholder for others, implement similarly
-    addMedicalRecord: async (item) => { /* implement */ },
-    updateMedicalRecord: async (item) => { /* implement */ },
-    deleteMedicalRecord: async (id) => { /* implement */ },
-    addMedication: async (item) => { /* implement */ },
-    updateMedication: async (item) => { /* implement */ },
-    deleteMedication: async (id) => { /* implement */ },
-    addAllergy: async (item) => { /* implement */ },
-    updateAllergy: async (item) => { /* implement */ },
-    deleteAllergy: async (id) => { /* implement */ },
-    addEmergencyContact: async (item) => { /* implement */ },
-    updateEmergencyContact: async (item) => { /* implement */ },
-    deleteEmergencyContact: async (id) => { /* implement */ },
+    updateAppointment: handleUpdateAppointment,
+    deleteAppointment: handleDeleteAppointment,
+    addMedicalRecord: handleAddMedicalRecord,
+    updateMedicalRecord: handleUpdateMedicalRecord,
+    deleteMedicalRecord: handleDeleteMedicalRecord,
+    addMedication: handleAddMedication,
+    updateMedication: handleUpdateMedication,
+    deleteMedication: handleDeleteMedication,
+    addAllergy: handleAddAllergy,
+    updateAllergy: handleUpdateAllergy,
+    deleteAllergy: handleDeleteAllergy,
+    addEmergencyContact: handleAddEmergencyContact,
+    updateEmergencyContact: handleUpdateEmergencyContact,
+    deleteEmergencyContact: handleDeleteEmergencyContact,
     addVital: handleAddVital,
   };
 
